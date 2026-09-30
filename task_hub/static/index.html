@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f6f2" />
+    <title>Work Agents — Task hub</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Work Agents home"
+          ><span class="brand-mark">w<span>·</span></span
+          ><span>work agents<small>YOUR TASK HUB</small></span></a
+        >
+        <div class="workspace">
+          <span class="workspace-icon">K</span>
+          <div>My workspace<small>Local-first automation</small></div>
+          <span class="workspace-dot" aria-hidden="true"></span>
+        </div>
+        <div class="nav-label">WORKSPACE</div>
+        <nav aria-label="Workspace navigation">
+          <button class="nav-button active" data-view="overview">
+            <span class="nav-icon">◫</span>Overview
+          </button>
+          <button class="nav-button" data-view="runs">
+            <span class="nav-icon">≡</span>Task runs<span
+              id="nav-run-count"
+              class="nav-count"
+              >0</span
+            >
+          </button>
+          <button class="nav-button" data-view="items">
+            <span class="nav-icon">✓</span>Follow-ups
+          </button>
+          <button class="nav-button" data-view="schedules">
+            <span class="nav-icon">◷</span>Schedules
+          </button>
+        </nav>
+        <div class="agent-nav-header">
+          <span class="nav-label">YOUR AGENTS</span
+          ><span class="tiny-pill">05</span>
+        </div>
+        <div id="agent-nav" class="agent-nav"></div>
+        <div class="sidebar-bottom">
+          <span class="connection-light"></span>
+          <div id="connection-label">
+            Connecting…<small>Checking the task service</small>
+          </div>
+          <button
+            id="access-button"
+            class="icon-button"
+            title="Set access token"
+            aria-label="Set access token"
+          >
+            ⚙
+          </button>
+        </div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <div class="breadcrumb">
+            Workspace <span>/</span>
+            <strong id="breadcrumb-current">Overview</strong>
+          </div>
+          <div class="topbar-right">
+            <span id="mode-badge" class="mode-badge">CONNECTING</span
+            ><span class="avatar" aria-label="Workspace owner">K</span>
+          </div>
+        </header>
+        <div class="page-content">
+          <section class="page-heading">
+            <div>
+              <div class="eyebrow">A LITTLE MORE SPACE TO THINK</div>
+              <h1 id="page-title">Your work, moving forward.</h1>
+              <p id="page-description">
+                Give your agents a task. Follow the progress. Pick up the
+                result.
+              </p>
+            </div>
+            <button id="new-task" class="primary-button">
+              <span>+</span> New task
+            </button>
+          </section>
+          <div id="notice" class="notice hidden" role="status"></div>
+          <div id="demo-banner" class="demo-banner hidden">
+            <span class="banner-icon">◈</span>
+            <div>
+              <strong>You're exploring offline demo mode.</strong
+              ><span
+                >Jobs and follow-ups are real local records. Reports use
+                demonstration templates; no model or live GitHub data is
+                used.</span
+              >
+            </div>
+          </div>
+          <section
+            id="stats"
+            class="stats"
+            aria-label="Task statistics"
+          ></section>
+          <section id="approval-section" class="approval-section hidden">
+            <div class="section-heading">
+              <h2>Ready for your review</h2>
+              <span class="section-note"
+                >Exact actions waiting for approval</span
+              >
+            </div>
+            <div id="approvals"></div>
+          </section>
+          <section id="agent-section">
+            <div class="section-heading">
+              <h2>A small team, on your side.</h2>
+              <span class="section-note">Choose an agent to get started</span>
+            </div>
+            <div id="agent-cards" class="agent-cards"></div>
+          </section>
+          <div id="overview-grid" class="overview-grid">
+            <section id="runs-section" class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2 id="runs-heading">Recent task runs</h2>
+                  <p>From the first step to the finished result.</p>
+                </div>
+                <button id="all-runs" class="text-button">
+                  View all <span>↗</span>
+                </button>
+              </div>
+              <div id="run-list" class="run-list"></div>
+            </section>
+            <section id="schedule-section" class="panel schedule-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>On the calendar</h2>
+                  <p>Good routines, handled automatically.</p>
+                </div>
+                <span class="calendar-icon">◷</span>
+              </div>
+              <div id="schedule-list"></div>
+              <div class="schedule-footer">
+                <span>Runs while your service is online.</span
+                ><button id="add-schedule" class="text-button">
+                  Create schedule <span>+</span>
+                </button>
+              </div>
+            </section>
+          </div>
+          <section id="items-section" class="panel hidden">
+            <div class="panel-heading">
+              <div>
+                <h2>Your follow-ups</h2>
+                <p>Concrete next steps saved by you and your agents.</p>
+              </div>
+            </div>
+            <form id="item-form" class="item-form">
+              <label class="sr-only" for="item-title">New follow-up title</label
+              ><input
+                id="item-title"
+                placeholder="Add a follow-up item…"
+                maxlength="200"
+                required
+              /><button class="secondary-button" type="submit">Add item</button>
+            </form>
+            <div id="item-list"></div>
+          </section>
+          <footer class="page-footer">
+            <span
+              ><span class="footer-dot"></span> Persistent jobs. Clear history.
+              You stay in control.</span
+            ><span id="last-updated">Waiting for service</span>
+          </footer>
+        </div>
+      </main>
+    </div>
+    <dialog id="composer" class="composer-dialog">
+      <form id="task-form">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow">DELEGATE A LITTLE</span>
+            <h2 id="composer-title">Give your agent a task</h2>
+          </div>
+          <button
+            type="button"
+            class="close-button"
+            data-close="composer"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <label for="task-agent">Agent</label
+        ><select id="task-agent"></select
+        ><label for="task-title">Task title</label
+        ><input
+          id="task-title"
+          maxlength="160"
+          required
+          placeholder="e.g. Prepare this week's engineering update"
+        />
+        <div class="label-row">
+          <label for="task-instruction">What should the agent do?</label
+          ><button id="use-example" class="text-button" type="button">
+            Use an example
+          </button>
+        </div>
+        <textarea
+          id="task-instruction"
+          rows="4"
+          maxlength="12000"
+          required
+          placeholder="Describe the outcome and the context that matters…"
+        ></textarea
+        ><label for="task-repo"
+          >Repository <span class="optional">optional</span></label
+        ><select id="task-repo">
+          <option value="">No repository</option></select
+        ><label for="task-notes"
+          >Notes or meeting transcript
+          <span class="optional">optional</span></label
+        ><textarea
+          id="task-notes"
+          rows="3"
+          maxlength="24000"
+          placeholder="Paste source material here. Missing details stay unspecified."
+        ></textarea>
+        <div class="schedule-toggle">
+          <label
+            ><input id="task-schedule" type="checkbox" /> Repeat this task
+            automatically</label
+          >
+        </div>
+        <div id="schedule-fields" class="schedule-fields hidden">
+          <div>
+            <label for="schedule-cadence">Repeat</label
+            ><select id="schedule-cadence">
+              <option value="daily">Every day</option>
+              <option value="weekly">Every week</option>
+            </select>
+          </div>
+          <div>
+            <label for="schedule-time">At</label
+            ><input id="schedule-time" type="time" value="08:00" required />
+          </div>
+          <div id="weekday-field" class="hidden">
+            <label for="schedule-weekday">On</label
+            ><select id="schedule-weekday">
+              <option value="0">Monday</option>
+              <option value="1">Tuesday</option>
+              <option value="2">Wednesday</option>
+              <option value="3">Thursday</option>
+              <option value="4">Friday</option>
+              <option value="5">Saturday</option>
+              <option value="6">Sunday</option>
+            </select>
+          </div>
+          <div class="timezone-field">
+            <label for="schedule-timezone">Timezone</label
+            ><input
+              id="schedule-timezone"
+              value="Asia/Kolkata"
+              required
+              maxlength="80"
+            />
+          </div>
+        </div>
+        <div id="composer-error" class="form-error" role="alert"></div>
+        <div class="dialog-footer">
+          <span id="composer-footnote"
+            >Results are saved in your task history.</span
+          ><button id="task-submit" type="submit" class="primary-button">
+            Run task <span>↗</span>
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="run-dialog" class="result-dialog">
+      <div class="dialog-heading">
+        <div>
+          <span id="result-agent" class="eyebrow"></span>
+          <h2 id="result-title">Task result</h2>
+        </div>
+        <button class="close-button" data-close="run-dialog" aria-label="Close">
+          ×
+        </button>
+      </div>
+      <div id="result-meta" class="result-meta"></div>
+      <div id="result-error" class="form-error"></div>
+      <div id="result-approvals"></div>
+      <div id="result-empty" class="result-empty hidden"></div>
+      <pre id="result-content" class="result-content"></pre>
+      <details class="execution-details">
+        <summary>Execution history</summary>
+        <ol id="result-events" class="event-list"></ol>
+      </details>
+      <div class="dialog-footer">
+        <span id="result-input-note"></span>
+        <div class="result-actions">
+          <button id="cancel-run" class="secondary-button hidden">
+            Cancel task</button
+          ><button id="retry-run" class="secondary-button hidden">
+            Retry task</button
+          ><button id="download-result" class="primary-button hidden">
+            Download result <span>↓</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="access-dialog" class="access-dialog">
+      <form id="access-form">
+        <div class="dialog-heading">
+          <div>
+            <h2>Workspace access</h2>
+            <p>Enter HUB_AUTH_TOKEN if your service requires one.</p>
+          </div>
+          <button
+            class="close-button"
+            type="button"
+            data-close="access-dialog"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <label for="access-token">Access token</label
+        ><input id="access-token" type="password" autocomplete="off" />
+        <p class="small-note">
+          Stored only in this browser tab's session. Your model and GitHub
+          credentials stay on the server.
+        </p>
+        <div class="dialog-footer">
+          <button class="primary-button" type="submit">Connect</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

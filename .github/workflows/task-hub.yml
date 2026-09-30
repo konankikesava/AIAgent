@@ -1,0 +1,72 @@
+name: Work Agents checks
+
+on:
+  push:
+    paths:
+      - 'task_hub/**'
+      - '.github/workflows/task-hub.yml'
+  pull_request:
+    paths:
+      - 'task_hub/**'
+      - '.github/workflows/task-hub.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.12'
+          - os: ubuntu-latest
+            python: '3.14'
+          - os: windows-latest
+            python: '3.14'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: task_hub
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install timezone data
+        run: python -m pip install tzdata
+      - name: Verify runtime, permissions, and scheduling
+        run: python -m unittest discover -s task_hub/tests -v
+      - name: Check browser code syntax
+        run: node --check task_hub/static/app.js
+      - name: Build and smoke-test the Docker image
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
+        shell: bash
+        run: |
+          docker build -t work-agents:test task_hub
+          docker run --detach --name work-agents-check --publish 127.0.0.1:8765:8765 \
+            --env MODEL_PROVIDER=demo \
+            --env HUB_AUTH_TOKEN=ci-fixture-token-not-a-production-secret work-agents:test
+          trap 'docker logs work-agents-check; docker rm --force work-agents-check' EXIT
+          python - <<'PY'
+          import json
+          import time
+          import urllib.request
+          request = urllib.request.Request(
+              'http://127.0.0.1:8765/api/state',
+              headers={'Authorization': 'Bearer ci-fixture-token-not-a-production-secret'},
+          )
+          for attempt in range(20):
+              try:
+                  with urllib.request.urlopen(request, timeout=3) as response:
+                      state = json.load(response)
+                  assert state['config']['provider'] == 'demo'
+                  assert len(state['agents']) == 5
+                  break
+              except OSError:
+                  time.sleep(0.5)
+          else:
+              raise SystemExit('Docker service did not start')
+          PY

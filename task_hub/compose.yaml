@@ -1,0 +1,35 @@
+services:
+  work-agents:
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HUB_PORT:-8765}:8765"
+    environment:
+      MODEL_PROVIDER: ${MODEL_PROVIDER:-ollama}
+      MODEL_NAME: ${MODEL_NAME:-}
+      MODEL_URL: ${DOCKER_MODEL_URL:-http://host.docker.internal:11434}
+      MODEL_API_KEY: ${MODEL_API_KEY:-}
+      GITHUB_ALLOWED_REPOS: ${GITHUB_ALLOWED_REPOS:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_WRITES_ENABLED: ${GITHUB_WRITES_ENABLED:-false}
+      HUB_AUTH_TOKEN: ${HUB_AUTH_TOKEN:?Set HUB_AUTH_TOKEN to a random token of at least 24 characters}
+      HUB_ALLOWED_HOSTS: ${HUB_ALLOWED_HOSTS:-localhost,127.0.0.1,::1}
+      HUB_WORKERS: ${HUB_WORKERS:-2}
+    volumes:
+      - hub-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: 1.0
+
+volumes:
+  hub-data:
